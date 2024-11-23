@@ -58,10 +58,5 @@ def resolve_color_default(color: bool | None = None) -> bool | None:
     """
     if color is not None:
         return color
-
     ctx = get_current_context(silent=True)
-
-    if ctx is not None:
-        return ctx.color
-
-    return None
+    return ctx.color if ctx is not None else None
