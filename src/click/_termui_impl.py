@@ -188,19 +188,13 @@ class ProgressBar(t.Generic[V]):
     def format_bar(self) -> str:
         if self.length is not None:
             bar_length = int(self.pct * self.width)
-            bar = self.fill_char * bar_length
-            bar += self.empty_char * (self.width - bar_length)
+            bar = self.fill_char * bar_length + self.empty_char * (self.width - bar_length)
         elif self.finished:
             bar = self.fill_char * self.width
         else:
-            chars = list(self.empty_char * (self.width or 1))
+            chars = [self.empty_char] * (self.width or 1)
             if self.time_per_iteration != 0:
-                chars[
-                    int(
-                        (math.cos(self.pos * self.time_per_iteration) / 2.0 + 0.5)
-                        * self.width
-                    )
-                ] = self.fill_char
+                chars[int((math.cos(self.pos * self.time_per_iteration) / 2.0 + 0.5) * self.width)] = self.fill_char
             bar = "".join(chars)
         return bar
 
@@ -362,6 +356,10 @@ class ProgressBar(t.Generic[V]):
 
             self.finish()
             self.render_progress()
+    def _calculate_length_hint(self, iterable):
+        from operator import length_hint
+        length = length_hint(iterable, -1)
+        return None if length == -1 else length
 
 
 def pager(generator: cabc.Iterable[str], color: bool | None = None) -> None:
