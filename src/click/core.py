@@ -1224,38 +1224,34 @@ class Command:
 
         .. versionadded:: 8.0
         """
-        from click.shell_completion import CompletionItem
-
-        results: list[CompletionItem] = []
+        results = []
 
         if incomplete and not incomplete[0].isalnum():
             for param in self.get_params(ctx):
                 if (
-                    not isinstance(param, Option)
-                    or param.hidden
-                    or (
-                        not param.multiple
-                        and ctx.get_parameter_source(param.name)  # type: ignore
-                        is ParameterSource.COMMANDLINE
+                    isinstance(param, Option)
+                    and not param.hidden
+                    and (
+                        param.multiple
+                        or ctx.get_parameter_source(param.name) != ParameterSource.COMMANDLINE
                     )
                 ):
-                    continue
+                    results.extend(
+                        CompletionItem(name, help=param.help)
+                        for name in [*param.opts, *param.secondary_opts]
+                        if name.startswith(incomplete)
+                    )
 
-                results.extend(
-                    CompletionItem(name, help=param.help)
-                    for name in [*param.opts, *param.secondary_opts]
-                    if name.startswith(incomplete)
-                )
-
-        while ctx.parent is not None:
-            ctx = ctx.parent
-
-            if isinstance(ctx.command, Group) and ctx.command.chain:
-                results.extend(
-                    CompletionItem(name, help=command.get_short_help_str())
-                    for name, command in _complete_visible_commands(ctx, incomplete)
-                    if name not in ctx._protected_args
-                )
+        root_ctx = ctx
+        while root_ctx.parent is not None:
+            root_ctx = root_ctx.parent
+        
+        if isinstance(root_ctx.command, Group) and root_ctx.command.chain:
+            results.extend(
+                CompletionItem(name, help=command.get_short_help_str())
+                for name, command in _complete_visible_commands(root_ctx, incomplete)
+                if name not in root_ctx._protected_args
+            )
 
         return results
 
