@@ -598,13 +598,9 @@ class FloatRange(_NumberRangeBase, FloatParamType):
             raise TypeError("Clamping is not supported for open bounds.")
 
     def _clamp(self, bound: float, dir: t.Literal[1, -1], open: bool) -> float:
-        if not open:
-            return bound
-
-        # Could use Python 3.9's math.nextafter here, but clamping an
-        # open float range doesn't seem to be particularly useful. It's
-        # left up to the user to write a callback to do it if needed.
-        raise RuntimeError("Clamping is not supported for open bounds.")
+        if open:
+            raise RuntimeError("Clamping is not supported for open bounds.")
+        return bound  # Since here open is False always, just return the bound directly
 
 
 class BoolParamType(ParamType):
