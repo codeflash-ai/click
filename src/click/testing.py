@@ -45,7 +45,9 @@ class EchoingStdin:
         return self._echo(self._input.read1(n))  # type: ignore
 
     def readline(self, n: int = -1) -> bytes:
-        return self._echo(self._input.readline(n))
+        line = self._input.readline(n)
+        self._output.write(line)
+        return line
 
     def readlines(self) -> list[bytes]:
         return [self._echo(x) for x in self._input.readlines()]
