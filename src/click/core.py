@@ -832,6 +832,19 @@ class Context:
         """
         return self._parameter_source.get(name)
 
+    def _get_default_map(self, default_map, info_name, parent):
+        if default_map is None and info_name is not None and parent is not None and parent.default_map is not None:
+            return parent.default_map.get(info_name)
+        return default_map
+
+    def _get_auto_envvar_prefix(self, auto_envvar_prefix, parent, info_name):
+        if auto_envvar_prefix is None:
+            if parent is not None and parent.auto_envvar_prefix is not None and info_name is not None:
+                return f"{parent.auto_envvar_prefix}_{info_name.upper()}".replace("-", "_")
+        else:
+            return auto_envvar_prefix.upper().replace("-", "_")
+        return None
+
 
 class Command:
     """Commands are the basic building block of command line interfaces in
