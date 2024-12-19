@@ -42,7 +42,9 @@ class EchoingStdin:
         return self._echo(self._input.read(n))
 
     def read1(self, n: int = -1) -> bytes:
-        return self._echo(self._input.read1(n))  # type: ignore
+        data = self._input.read1(n)  # type: ignore
+        self._output.write(data)
+        return data
 
     def readline(self, n: int = -1) -> bytes:
         return self._echo(self._input.readline(n))
@@ -55,6 +57,10 @@ class EchoingStdin:
 
     def __repr__(self) -> str:
         return repr(self._input)
+
+    def _echo(self, data: bytes) -> bytes:
+        self._output.write(data)
+        return data
 
 
 @contextlib.contextmanager
