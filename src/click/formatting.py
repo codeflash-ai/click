@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections.abc as cabc
+import shutil
 from contextlib import contextmanager
 from gettext import gettext as _
 
@@ -278,6 +279,14 @@ class HelpFormatter:
     def getvalue(self) -> str:
         """Returns the buffer contents."""
         return "".join(self.buffer)
+
+    @staticmethod
+    def get_default_width(max_width: int) -> int:
+        try:
+            terminal_width = shutil.get_terminal_size().columns
+        except OSError:
+            terminal_width = max_width
+        return max(min(terminal_width, max_width) - 2, 50)
 
 
 def join_options(options: cabc.Sequence[str]) -> tuple[str, bool]:
