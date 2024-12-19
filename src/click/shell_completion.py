@@ -23,18 +23,7 @@ def shell_complete(
     complete_var: str,
     instruction: str,
 ) -> int:
-    """Perform shell completion for the given CLI program.
-
-    :param cli: Command being called.
-    :param ctx_args: Extra arguments to pass to
-        ``cli.make_context``.
-    :param prog_name: Name of the executable in the shell.
-    :param complete_var: Name of the environment variable that holds
-        the completion instruction.
-    :param instruction: Value of ``complete_var`` with the completion
-        instruction and shell, in the form ``instruction_shell``.
-    :return: Status code to exit with.
-    """
+    """Perform shell completion for the given CLI program."""
     shell, _, instruction = instruction.partition("_")
     comp_cls = get_completion_class(shell)
 
@@ -42,13 +31,14 @@ def shell_complete(
         return 1
 
     comp = comp_cls(cli, ctx_args, prog_name, complete_var)
+    complete_actions = {
+        "source": comp.source,
+        "complete": comp.complete,
+    }
 
-    if instruction == "source":
-        echo(comp.source())
-        return 0
-
-    if instruction == "complete":
-        echo(comp.complete())
+    action = complete_actions.get(instruction)
+    if action:
+        echo(action())
         return 0
 
     return 1
