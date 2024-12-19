@@ -48,13 +48,38 @@ class EchoingStdin:
         return self._echo(self._input.readline(n))
 
     def readlines(self) -> list[bytes]:
-        return [self._echo(x) for x in self._input.readlines()]
+        input_readlines = self._input.readlines
+        output_write = self._output.write
+        echo = self._echo
+
+        lines = input_readlines()
+        for line in lines:
+            output_write(line)
+        return lines
 
     def __iter__(self) -> cabc.Iterator[bytes]:
         return iter(self._echo(x) for x in self._input)
 
     def __repr__(self) -> str:
         return repr(self._input)
+
+    def _echo(self, x: bytes) -> bytes:
+        self._output.write(x)
+        return x
+
+    def _iter_echo(self) -> cabc.Iterator[bytes]:
+        input_iter = iter(self._input)
+        output_write = self._output.write
+        paused = self._paused
+        echo = self._echo
+
+        while not paused:
+            try:
+                line = next(input_iter)
+                output_write(line)
+                yield line
+            except StopIteration:
+                break
 
 
 @contextlib.contextmanager
