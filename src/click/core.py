@@ -2650,16 +2650,15 @@ class Option(Parameter):
                     raise TypeError("'count' is not valid with 'is_flag'.")
 
     def to_info_dict(self) -> dict[str, t.Any]:
-        info_dict = super().to_info_dict()
-        info_dict.update(
-            help=self.help,
-            prompt=self.prompt,
-            is_flag=self.is_flag,
-            flag_value=self.flag_value,
-            count=self.count,
-            hidden=self.hidden,
-        )
-        return info_dict
+        return {
+            **super().to_info_dict(),
+            'help': self.help,
+            'prompt': self.prompt,
+            'is_flag': self.is_flag,
+            'flag_value': self.flag_value,
+            'count': self.count,
+            'hidden': self.hidden,
+        }
 
     def get_error_hint(self, ctx: Context) -> str:
         result = super().get_error_hint(ctx)
