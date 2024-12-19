@@ -3075,18 +3075,18 @@ class Argument(Parameter):
         self, decls: cabc.Sequence[str], expose_value: bool
     ) -> tuple[str | None, list[str], list[str]]:
         if not decls:
-            if not expose_value:
-                return None, [], []
-            raise TypeError("Argument is marked as exposed, but does not have a name.")
-        if len(decls) == 1:
-            name = arg = decls[0]
-            name = name.replace("-", "_").lower()
-        else:
+            if expose_value:
+                raise TypeError("Argument is marked as exposed, but does not have a name.")
+            return None, [], []
+
+        if len(decls) != 1:
             raise TypeError(
                 "Arguments take exactly one parameter declaration, got"
                 f" {len(decls)}: {decls}."
             )
-        return name, [arg], []
+
+        name = decls[0].replace("-", "_").lower()
+        return name, [decls[0]], []
 
     def get_usage_pieces(self, ctx: Context) -> list[str]:
         return [self.make_metavar()]
