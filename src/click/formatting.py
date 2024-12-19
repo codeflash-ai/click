@@ -291,11 +291,24 @@ def join_options(options: cabc.Sequence[str]) -> tuple[str, bool]:
 
     for opt in options:
         prefix = _split_opt(opt)[0]
-
         if prefix == "/":
             any_prefix_is_slash = True
-
         rv.append((len(prefix), opt))
+    
+    # Instead of sorting, split the options into separate lists based on prefix length
+    # which is faster for small fixed number of categories
+    zero_prefix = []
+    one_prefix = []
+    two_prefix = []
 
-    rv.sort(key=lambda x: x[0])
-    return ", ".join(x[1] for x in rv), any_prefix_is_slash
+    for length, opt in rv:
+        if length == 0:
+            zero_prefix.append(opt)
+        elif length == 1:
+            one_prefix.append(opt)
+        elif length == 2:
+            two_prefix.append(opt)
+
+    sorted_opts = zero_prefix + one_prefix + two_prefix
+    
+    return ", ".join(sorted_opts), any_prefix_is_slash
