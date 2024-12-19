@@ -265,58 +265,38 @@ def echo(
         Support colors on Windows if colorama is installed.
     """
     if file is None:
-        if err:
-            file = _default_text_stderr()
-        else:
-            file = _default_text_stdout()
-
-        # There are no standard streams attached to write to. For example,
-        # pythonw on Windows.
+        file = _default_text_stderr() if err else _default_text_stdout()
         if file is None:
             return
 
-    # Convert non bytes/text into the native string type.
-    if message is not None and not isinstance(message, (str, bytes, bytearray)):
-        out: str | bytes | None = str(message)
+    out: str | bytes | None
+    if message is not None:
+        out = str(message) if not isinstance(message, (str, bytes, bytearray)) else message
     else:
-        out = message
+        out = None
 
-    if nl:
-        out = out or ""
-        if isinstance(out, str):
-            out += "\n"
-        else:
-            out += b"\n"
+    if nl and out is not None:
+        out += "\n" if isinstance(out, str) else b"\n"
 
     if not out:
         file.flush()
         return
 
-    # If there is a message and the value looks like bytes, we manually
-    # need to find the binary stream and write the message in there.
-    # This is done separately so that most stream types will work as you
-    # would expect. Eg: you can write to StringIO for other cases.
     if isinstance(out, (bytes, bytearray)):
         binary_file = _find_binary_writer(file)
-
         if binary_file is not None:
             file.flush()
             binary_file.write(out)
             binary_file.flush()
             return
-
-    # ANSI style code support. For no message or bytes, nothing happens.
-    # When outputting to a file instead of a terminal, strip codes.
     else:
         color = resolve_color_default(color)
-
         if should_strip_ansi(file, color):
             out = strip_ansi(out)
-        elif WIN:
-            if auto_wrap_for_ansi is not None:
-                file = auto_wrap_for_ansi(file, color)  # type: ignore
-            elif not color:
-                out = strip_ansi(out)
+        elif WIN and auto_wrap_for_ansi is not None:
+            file = auto_wrap_for_ansi(file, color)  # type: ignore
+        elif WIN and not color:
+            out = strip_ansi(out)
 
     file.write(out)  # type: ignore
     file.flush()
