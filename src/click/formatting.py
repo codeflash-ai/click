@@ -12,13 +12,20 @@ FORCED_WIDTH: int | None = None
 
 
 def measure_table(rows: cabc.Iterable[tuple[str, str]]) -> tuple[int, ...]:
-    widths: dict[int, int] = {}
+    # Determine the number of columns to process
+    widths = []
 
+    # Iterate over each row only once
     for row in rows:
+        if len(widths) < len(row):
+            widths.extend(0 for _ in range(len(row) - len(widths)))
+        
         for idx, col in enumerate(row):
-            widths[idx] = max(widths.get(idx, 0), term_len(col))
+            col_len = term_len(col)
+            if col_len > widths[idx]:
+                widths[idx] = col_len
 
-    return tuple(y for x, y in sorted(widths.items()))
+    return tuple(widths)
 
 
 def iter_rows(
