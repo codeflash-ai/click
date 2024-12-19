@@ -665,6 +665,12 @@ def _translate_ch_to_exc(ch: str) -> None:
 
     return None
 
+def iter_length(iterable):
+    try:
+        return len(iterable)
+    except TypeError:
+        return -1
+
 
 if WIN:
     import msvcrt
