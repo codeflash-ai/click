@@ -282,20 +282,16 @@ class ProgressBar(t.Generic[V]):
         if self.length is not None and self.pos >= self.length:
             self.finished = True
 
-        if (time.time() - self.last_eta) < 1.0:
+        current_time = time.time()
+        if (current_time - self.last_eta) < 1.0:
             return
 
-        self.last_eta = time.time()
+        self.last_eta = current_time
 
-        # self.avg is a rolling list of length <= 7 of steps where steps are
-        # defined as time elapsed divided by the total progress through
-        # self.length.
-        if self.pos:
-            step = (time.time() - self.start) / self.pos
-        else:
-            step = time.time() - self.start
-
-        self.avg = self.avg[-6:] + [step]
+        step = (current_time - self.start) / self.pos if self.pos else current_time - self.start
+        if len(self.avg) >= 7:  # Maintain a fixed size for avg list
+            self.avg.pop(0)
+        self.avg.append(step)
 
         self.eta_known = self.length is not None
 
