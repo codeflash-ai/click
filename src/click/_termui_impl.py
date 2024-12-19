@@ -177,10 +177,9 @@ class ProgressBar(t.Generic[V]):
         return ""
 
     def format_pos(self) -> str:
-        pos = str(self.pos)
-        if self.length is not None:
-            pos += f"/{self.length}"
-        return pos
+        if self.length is None:
+            return str(self.pos)
+        return f"{self.pos}/{self.length}"
 
     def format_pct(self) -> str:
         return f"{int(self.pct * 100): 4}%"[1:]
