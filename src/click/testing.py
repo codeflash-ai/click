@@ -253,10 +253,9 @@ class CliRunner:
         self, overrides: cabc.Mapping[str, str | None] | None = None
     ) -> cabc.Mapping[str, str | None]:
         """Returns the environment overrides for invoking a script."""
-        rv = dict(self.env)
-        if overrides:
-            rv.update(overrides)
-        return rv
+        if not overrides:
+            return self.env
+        return {**self.env, **overrides}
 
     @contextlib.contextmanager
     def isolation(
