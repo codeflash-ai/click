@@ -633,7 +633,7 @@ class Context:
     def find_root(self) -> Context:
         """Finds the outermost context."""
         node = self
-        while node.parent is not None:
+        while node.parent:
             node = node.parent
         return node
 
