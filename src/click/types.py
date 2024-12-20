@@ -857,15 +857,13 @@ class Path(ParamType):
     def coerce_path_result(
         self, value: str | os.PathLike[str]
     ) -> str | bytes | os.PathLike[str]:
-        if self.type is not None and not isinstance(value, self.type):
-            if self.type is str:
-                return os.fsdecode(value)
-            elif self.type is bytes:
-                return os.fsencode(value)
-            else:
-                return t.cast("os.PathLike[str]", self.type(value))
-
-        return value
+        if self.type is None or isinstance(value, self.type):
+            return value
+        if self.type is str:
+            return os.fsdecode(value)
+        if self.type is bytes:
+            return os.fsencode(value)
+        return t.cast("os.PathLike[str]", self.type(value))
 
     def convert(
         self,
