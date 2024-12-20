@@ -602,36 +602,31 @@ def _resolve_incomplete(
     :param incomplete: Value being completed. May be empty.
     """
     # Different shells treat an "=" between a long option name and
-    # value differently. Might keep the value joined, return the "="
-    # as a separate item, or return the split name and value. Always
-    # split and discard the "=" to make completion easier.
-    if incomplete == "=":
-        incomplete = ""
-    elif "=" in incomplete and _start_of_option(ctx, incomplete):
-        name, _, incomplete = incomplete.partition("=")
-        args.append(name)
+    # value differently. Always split and discard the "=" to make
+    # completion easier.
+    if "=" in incomplete:
+        if incomplete == "=":
+            incomplete = ""
+        elif _start_of_option(ctx, incomplete):
+            name, _, incomplete = incomplete.partition("=")
+            args.append(name)
 
-    # The "--" marker tells Click to stop treating values as options
-    # even if they start with the option character. If it hasn't been
-    # given and the incomplete arg looks like an option, the current
-    # command will provide option name completions.
-    if "--" not in args and _start_of_option(ctx, incomplete):
+    # Determine if the incomplete arg looks like an option.
+    is_option = _start_of_option(ctx, incomplete)
+    if "--" not in args and is_option:
         return ctx.command, incomplete
 
     params = ctx.command.get_params(ctx)
 
-    # If the last complete arg is an option name with an incomplete
-    # value, the option will provide value completions.
+    # Check if the last complete arg is an incomplete option value.
     for param in params:
         if _is_incomplete_option(ctx, args, param):
             return param, incomplete
 
-    # It's not an option name or value. The first argument without a
-    # parsed value will provide value completions.
+    # Check for the first argument without a parsed value.
     for param in params:
         if _is_incomplete_argument(ctx, param):
             return param, incomplete
 
-    # There were no unparsed arguments, the command may be a group that
-    # will provide command name completions.
+    # Default to command name completions.
     return ctx.command, incomplete
