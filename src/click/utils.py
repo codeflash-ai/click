@@ -30,7 +30,7 @@ R = t.TypeVar("R")
 
 
 def _posixify(name: str) -> str:
-    return "-".join(name.split()).lower()
+    return "-".join(name.lower().split())
 
 
 def safecall(func: t.Callable[P, R]) -> t.Callable[P, R | None]:
