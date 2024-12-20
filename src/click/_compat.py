@@ -221,7 +221,9 @@ def _is_compat_stream_attr(stream: t.TextIO, attr: str, value: str | None) -> bo
     has a value.
     """
     stream_value = getattr(stream, attr, None)
-    return stream_value == value or (value is None and stream_value is not None)
+    if value is None:
+        return stream_value is not None
+    return stream_value == value
 
 
 def _is_compatible_text_stream(
