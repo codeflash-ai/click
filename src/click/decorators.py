@@ -14,6 +14,7 @@ from .core import Option
 from .core import Parameter
 from .globals import get_current_context
 from .utils import echo
+import typing_extensions as te
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -75,20 +76,19 @@ def make_pass_decorator(
     """
 
     def decorator(f: t.Callable[te.Concatenate[T, P], R]) -> t.Callable[P, R]:
+        if ensure:
+            get_obj: t.Callable[[t.Any], T] = lambda ctx: ctx.ensure_object(object_type)
+        else:
+            get_obj: t.Callable[[t.Any], T] = lambda ctx: ctx.find_object(object_type)
+        
         def new_func(*args: P.args, **kwargs: P.kwargs) -> R:
             ctx = get_current_context()
-
-            obj: T | None
-            if ensure:
-                obj = ctx.ensure_object(object_type)
-            else:
-                obj = ctx.find_object(object_type)
+            obj = get_obj(ctx)
 
             if obj is None:
                 raise RuntimeError(
-                    "Managed to invoke callback without a context"
-                    f" object of type {object_type.__name__!r}"
-                    " existing."
+                    "Managed to invoke callback without a context object"
+                    f" of type {object_type.__name__!r} existing."
                 )
 
             return ctx.invoke(f, obj, *args, **kwargs)
