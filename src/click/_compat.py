@@ -208,11 +208,7 @@ def _find_binary_writer(stream: t.IO[t.Any]) -> t.BinaryIO | None:
 
 def _stream_is_misconfigured(stream: t.TextIO) -> bool:
     """A stream is misconfigured if its encoding is ASCII."""
-    # If the stream does not have an encoding set, we assume it's set
-    # to ASCII.  This appears to happen in certain unittest
-    # environments.  It's not quite clear what the correct behavior is
-    # but this at least will force Click to recover somehow.
-    return is_ascii_encoding(getattr(stream, "encoding", None) or "ascii")
+    return stream.encoding.lower() == "ascii"
 
 
 def _is_compat_stream_attr(stream: t.TextIO, attr: str, value: str | None) -> bool:
@@ -227,12 +223,8 @@ def _is_compat_stream_attr(stream: t.TextIO, attr: str, value: str | None) -> bo
 def _is_compatible_text_stream(
     stream: t.TextIO, encoding: str | None, errors: str | None
 ) -> bool:
-    """Check if a stream's encoding and errors attributes are
-    compatible with the desired values.
-    """
-    return _is_compat_stream_attr(
-        stream, "encoding", encoding
-    ) and _is_compat_stream_attr(stream, "errors", errors)
+    """Check if a stream's encoding and errors attributes are compatible with the desired values."""
+    return (encoding is None or encoding == stream.encoding) and (errors is None or errors == stream.errors)
 
 
 def _force_correct_text_stream(
@@ -248,30 +240,18 @@ def _force_correct_text_stream(
         binary_reader = t.cast(t.BinaryIO, text_stream)
     else:
         text_stream = t.cast(t.TextIO, text_stream)
-        # If the stream looks compatible, and won't default to a
-        # misconfigured ascii encoding, return it as-is.
         if _is_compatible_text_stream(text_stream, encoding, errors) and not (
             encoding is None and _stream_is_misconfigured(text_stream)
         ):
             return text_stream
 
-        # Otherwise, get the underlying binary reader.
-        possible_binary_reader = find_binary(text_stream)
-
-        # If that's not possible, silently use the original reader
-        # and get mojibake instead of exceptions.
-        if possible_binary_reader is None:
+        binary_reader = find_binary(text_stream)
+        if binary_reader is None:
             return text_stream
 
-        binary_reader = possible_binary_reader
-
-    # Default errors to replace instead of strict in order to get
-    # something that works.
     if errors is None:
         errors = "replace"
 
-    # Wrap the binary stream in a text stream with the correct
-    # encoding parameters.
     return _make_text_stream(
         binary_reader,
         encoding,
@@ -602,6 +582,11 @@ def _make_cached_stream_func(
         return rv
 
     return func
+def get_best_encoding(stream: t.BinaryIO) -> str:
+    return getattr(stream, 'encoding', 'utf-8')
+
+def is_ascii_encoding(encoding: str) -> bool:
+    return encoding.lower() == 'ascii'
 
 
 _default_text_stdin = _make_cached_stream_func(lambda: sys.stdin, get_text_stdin)
