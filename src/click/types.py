@@ -506,16 +506,12 @@ class _NumberRangeBase(_NumberParamTypeBase):
     def _describe_range(self) -> str:
         """Describe the range for use in help text."""
         if self.min is None:
-            op = "<" if self.max_open else "<="
-            return f"x{op}{self.max}"
+            return f"x{'<' if self.max_open else '<='}{self.max}"
 
         if self.max is None:
-            op = ">" if self.min_open else ">="
-            return f"x{op}{self.min}"
+            return f"x{'>' if self.min_open else '>='}{self.min}"
 
-        lop = "<" if self.min_open else "<="
-        rop = "<" if self.max_open else "<="
-        return f"{self.min}{lop}x{rop}{self.max}"
+        return f"{self.min}{'<' if self.min_open else '<='}x{'<' if self.max_open else '<='}{self.max}"
 
     def __repr__(self) -> str:
         clamp = " clamped" if self.clamp else ""
