@@ -708,11 +708,10 @@ class File(ParamType):
     def resolve_lazy_flag(self, value: str | os.PathLike[str]) -> bool:
         if self.lazy is not None:
             return self.lazy
-        if os.fspath(value) == "-":
+        path = os.fspath(value)
+        if path == "-":
             return False
-        elif "w" in self.mode:
-            return True
-        return False
+        return 'w' in self.mode
 
     def convert(
         self,
