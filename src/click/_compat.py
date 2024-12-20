@@ -171,19 +171,12 @@ def _is_binary_writer(stream: t.IO[t.Any], default: bool = False) -> bool:
 
 
 def _find_binary_reader(stream: t.IO[t.Any]) -> t.BinaryIO | None:
-    # We need to figure out if the given stream is already binary.
-    # This can happen because the official docs recommend detaching
-    # the streams to get binary streams.  Some code might do this, so
-    # we need to deal with this case explicitly.
     if _is_binary_reader(stream, False):
-        return t.cast(t.BinaryIO, stream)
+        return stream  # Stream is already binary
 
     buf = getattr(stream, "buffer", None)
-
-    # Same situation here; this time we assume that the buffer is
-    # actually binary in case it's closed.
     if buf is not None and _is_binary_reader(buf, True):
-        return t.cast(t.BinaryIO, buf)
+        return buf  # Buffer is binary
 
     return None
 
@@ -602,6 +595,17 @@ def _make_cached_stream_func(
         return rv
 
     return func
+
+
+def _is_binary_reader(stream: t.IO[t.Any], check_if_closed: bool) -> bool:
+    try:
+        if hasattr(stream, "read") and callable(stream.read):
+            if check_if_closed and hasattr(stream, "closed") and stream.closed:
+                return False
+            return isinstance(stream.read(0), bytes)
+    except Exception:
+        return False
+    return False
 
 
 _default_text_stdin = _make_cached_stream_func(lambda: sys.stdin, get_text_stdin)
