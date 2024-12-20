@@ -15,6 +15,7 @@ from .exceptions import BadParameter
 from .utils import format_filename
 from .utils import LazyFile
 from .utils import safecall
+from functools import lru_cache
 
 if t.TYPE_CHECKING:
     import typing_extensions as te
@@ -385,6 +386,7 @@ class DateTime(ParamType):
     def get_metavar(self, param: Parameter) -> str:
         return f"[{'|'.join(self.formats)}]"
 
+    @lru_cache(maxsize=None)
     def _try_to_convert_date(self, value: t.Any, format: str) -> datetime | None:
         try:
             return datetime.strptime(value, format)
