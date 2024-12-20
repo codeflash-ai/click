@@ -368,8 +368,7 @@ def option(
         ``cls``.
     :param attrs: Passed as keyword arguments to the constructor of ``cls``.
     """
-    if cls is None:
-        cls = Option
+    cls = cls or Option
 
     def decorator(f: FC) -> FC:
         _param_memo(f, cls(param_decls, **attrs))
