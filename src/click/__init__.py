@@ -8,10 +8,7 @@ composable.
 from __future__ import annotations
 
 from .core import Argument as Argument
-from .core import Command as Command
 from .core import CommandCollection as CommandCollection
-from .core import Context as Context
-from .core import Group as Group
 from .core import Option as Option
 from .core import Parameter as Parameter
 from .decorators import argument as argument
@@ -74,51 +71,17 @@ from .utils import open_file as open_file
 
 def __getattr__(name: str) -> object:
     import warnings
-
-    if name == "BaseCommand":
-        from .core import _BaseCommand
-
-        warnings.warn(
-            "'BaseCommand' is deprecated and will be removed in Click 9.0. Use"
-            " 'Command' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return _BaseCommand
-
-    if name == "MultiCommand":
-        from .core import _MultiCommand
-
-        warnings.warn(
-            "'MultiCommand' is deprecated and will be removed in Click 9.0. Use"
-            " 'Group' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return _MultiCommand
-
-    if name == "OptionParser":
-        from .parser import _OptionParser
-
-        warnings.warn(
-            "'OptionParser' is deprecated and will be removed in Click 9.0. The"
-            " old parser is available in 'optparse'.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return _OptionParser
-
-    if name == "__version__":
-        import importlib.metadata
-        import warnings
-
-        warnings.warn(
-            "The '__version__' attribute is deprecated and will be removed in"
-            " Click 9.1. Use feature detection or"
-            " 'importlib.metadata.version(\"click\")' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return importlib.metadata.version("click")
-
+    lookup = {
+        "BaseCommand": ("'BaseCommand' is deprecated and will be removed in Click 9.0. Use 'Command' instead.", ".core", "_BaseCommand"),
+        "MultiCommand": ("'MultiCommand' is deprecated and will be removed in Click 9.0. Use 'Group' instead.", ".core", "_MultiCommand"),
+        "OptionParser": ("'OptionParser' is deprecated and will be removed in Click 9.0. The old parser is available in 'optparse'.", ".parser", "_OptionParser"),
+        "__version__": ("The '__version__' attribute is deprecated and will be removed in Click 9.1. Use feature detection or 'importlib.metadata.version(\"click\")' instead.", "importlib.metadata", "version")
+    }
+    if name in lookup:
+        msg, module, attr = lookup[name]
+        warnings.warn(msg, DeprecationWarning, stacklevel=2)
+        mod = __import__(module, fromlist=[attr])
+        if name == "__version__":
+            return getattr(mod, attr)("click")
+        return getattr(mod, attr)
     raise AttributeError(name)
