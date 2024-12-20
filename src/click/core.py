@@ -1196,20 +1196,14 @@ class Command:
         return args
 
     def invoke(self, ctx: Context) -> t.Any:
-        """Given a context, this invokes the attached callback (if it exists)
-        in the right way.
-        """
+        """Given a context, this invokes the attached callback (if it exists) in the right way."""
         if self.deprecated:
-            extra_message = (
-                f" {self.deprecated}" if isinstance(self.deprecated, str) else ""
-            )
-            message = _(
-                "DeprecationWarning: The command {name!r} is deprecated."
-                "{extra_message}"
-            ).format(name=self.name, extra_message=extra_message)
+            # Create the message efficiently in one step
+            extra_message = f" {self.deprecated}" if isinstance(self.deprecated, str) else ""
+            message = _("DeprecationWarning: The command {name!r} is deprecated.{extra_message}").format(name=self.name, extra_message=extra_message)
             echo(style(message, fg="red"), err=True)
 
-        if self.callback is not None:
+        if self.callback:
             return ctx.invoke(self.callback, **ctx.params)
 
     def shell_complete(self, ctx: Context, incomplete: str) -> list[CompletionItem]:
