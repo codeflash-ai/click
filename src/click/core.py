@@ -7,8 +7,7 @@ import inspect
 import os
 import sys
 import typing as t
-from collections import abc
-from collections import Counter
+from collections import defaultdict, abc
 from contextlib import AbstractContextManager
 from contextlib import contextmanager
 from contextlib import ExitStack
@@ -964,25 +963,25 @@ class Command:
     def get_params(self, ctx: Context) -> list[Parameter]:
         params = self.params
         help_option = self.get_help_option(ctx)
-
         if help_option is not None:
-            params = [*params, help_option]
-
+            params.append(help_option)
+        
         if __debug__:
             import warnings
-
             opts = [opt for param in params for opt in param.opts]
-            opts_counter = Counter(opts)
-            duplicate_opts = (opt for opt, count in opts_counter.items() if count > 1)
+            opts_counter = defaultdict(int)
+            for opt in opts:
+                opts_counter[opt] += 1
 
-            for duplicate_opt in duplicate_opts:
-                warnings.warn(
-                    (
-                        f"The parameter {duplicate_opt} is used more than once. "
-                        "Remove its duplicate as parameters should be unique."
-                    ),
-                    stacklevel=3,
-                )
+            for opt, count in opts_counter.items():
+                if count > 1:
+                    warnings.warn(
+                        (
+                            f"The parameter {opt} is used more than once. "
+                            "Remove its duplicate as parameters should be unique."
+                        ),
+                        stacklevel=3,
+                    )
 
         return params
 
